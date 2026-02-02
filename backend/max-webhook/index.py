@@ -69,14 +69,13 @@ def handler(event: dict, context) -> dict:
 def handle_message(update: dict):
     '''Обработка текстовых сообщений'''
     message = update.get('message', {})
-    chat_id = message.get('recipient', {}).get('chat_id')
-    sender_id = message.get('sender', {}).get('user_id', chat_id)
+    sender_id = message.get('sender', {}).get('user_id')
     user_text = message.get('body', {}).get('text', '').strip()
     
-    print(f"[DEBUG] Extracted chat_id: {chat_id}, sender_id: {sender_id}, text: {user_text}")
+    print(f"[DEBUG] Extracted sender_id: {sender_id}, text: {user_text}")
     
-    if not chat_id:
-        print("[WARNING] No chat_id found, skipping message")
+    if not sender_id:
+        print("[WARNING] No sender_id found, skipping message")
         return
     
     session = user_sessions.get(sender_id, {'step': 0})
@@ -92,7 +91,7 @@ def handle_message(update: dict):
             [{'type': 'callback', 'text': 'Иванюта Д.И.', 'payload': 'mechanic:Иванюта Д.И.'}],
             [{'type': 'callback', 'text': 'Загороднюк Н.Д.', 'payload': 'mechanic:Загороднюк Н.Д.'}]
         ]
-        send_message(chat_id, response_text, buttons)
+        send_message(sender_id, response_text, buttons)
         return
     
     elif lower_text in ['/help', 'помощь']:
@@ -103,14 +102,14 @@ def handle_message(update: dict):
 /help - Показать помощь
 
 Бот проведёт вас через все этапы диагностики!'''
-        send_message(chat_id, response_text)
+        send_message(sender_id, response_text)
         return
     
     elif lower_text in ['/cancel', 'отмена']:
         user_sessions[sender_id] = {'step': 0}
         response_text = '✅ Операция отменена.\n\nВведите /start для новой диагностики.'
         buttons = [[{'type': 'callback', 'text': 'Начать диагностику', 'payload': 'start'}]]
-        send_message(chat_id, response_text, buttons)
+        send_message(sender_id, response_text, buttons)
         return
     
     # Обработка по шагам
@@ -119,7 +118,7 @@ def handle_message(update: dict):
     if step == 0:
         response_text = 'Введите /start для начала диагностики или /help для помощи.'
         buttons = [[{'type': 'callback', 'text': 'Начать диагностику', 'payload': 'start'}]]
-        send_message(chat_id, response_text, buttons)
+        send_message(sender_id, response_text, buttons)
     
     elif step == 2:
         # Ввод госномера
@@ -129,10 +128,10 @@ def handle_message(update: dict):
             session['step'] = 3
             user_sessions[sender_id] = session
             response_text = f'✅ Госномер {clean_number} принят!\n\nТеперь введите пробег автомобиля (в км).\n\nНапример: 150000'
-            send_message(chat_id, response_text)
+            send_message(sender_id, response_text)
         else:
             response_text = '⚠️ Госномер слишком короткий.\n\nВведите корректный госномер (минимум 5 символов).\n\nНапример: A159BK124'
-            send_message(chat_id, response_text)
+            send_message(sender_id, response_text)
     
     elif step == 3:
         # Ввод пробега
@@ -147,28 +146,26 @@ def handle_message(update: dict):
                 [{'type': 'callback', 'text': 'ДХЧ', 'payload': 'type:dhch'}],
                 [{'type': 'callback', 'text': 'ДЭС', 'payload': 'type:des'}]
             ]
-            send_message(chat_id, response_text, buttons)
+            send_message(sender_id, response_text, buttons)
         else:
             response_text = '⚠️ Пожалуйста, введите пробег цифрами.\n\nНапример: 150000'
-            send_message(chat_id, response_text)
+            send_message(sender_id, response_text)
     
     else:
         response_text = 'Не понял команду. Используйте /help для справки.'
-        send_message(chat_id, response_text)
+        send_message(sender_id, response_text)
 
 
 def handle_callback(update: dict):
     '''Обработка нажатий на кнопки'''
     callback = update.get('callback', {})
-    message = callback.get('message', {})
-    chat_id = message.get('recipient', {}).get('chat_id')
-    sender_id = callback.get('user', {}).get('user_id', chat_id)
+    sender_id = callback.get('user', {}).get('user_id')
     payload = callback.get('payload', '')
     
-    print(f"[DEBUG] Callback - chat_id: {chat_id}, sender_id: {sender_id}, payload: {payload}")
+    print(f"[DEBUG] Callback - sender_id: {sender_id}, payload: {payload}")
     
-    if not chat_id:
-        print("[WARNING] No chat_id found in callback, skipping")
+    if not sender_id:
+        print("[WARNING] No sender_id found in callback, skipping")
         return
     
     session = user_sessions.get(sender_id, {'step': 0})
@@ -182,7 +179,7 @@ def handle_callback(update: dict):
             [{'type': 'callback', 'text': 'Иванюта Д.И.', 'payload': 'mechanic:Иванюта Д.И.'}],
             [{'type': 'callback', 'text': 'Загороднюк Н.Д.', 'payload': 'mechanic:Загороднюк Н.Д.'}]
         ]
-        send_message(chat_id, response_text, buttons)
+        send_message(sender_id, response_text, buttons)
     
     elif payload.startswith('mechanic:'):
         mechanic = payload.replace('mechanic:', '')
@@ -190,7 +187,7 @@ def handle_callback(update: dict):
         session['step'] = 2
         user_sessions[sender_id] = session
         response_text = f'✅ Механик {mechanic} выбран!\n\nВведите госномер автомобиля.\n\nНапример: A159BK124'
-        send_message(chat_id, response_text)
+        send_message(sender_id, response_text)
     
     elif payload.startswith('type:'):
         diagnostic_type = payload.replace('type:', '')
@@ -217,14 +214,14 @@ def handle_callback(update: dict):
 Диагностика завершена!'''.replace(',', ' ')
             
             buttons = [[{'type': 'callback', 'text': 'Начать новую диагностику', 'payload': 'start'}]]
-            send_message(chat_id, response_text, buttons)
+            send_message(sender_id, response_text, buttons)
             
             # Очищаем сессию
             user_sessions[sender_id] = {'step': 0}
         else:
             response_text = '❌ Ошибка сохранения в базу данных. Попробуйте ещё раз.'
             buttons = [[{'type': 'callback', 'text': 'Попробовать снова', 'payload': 'start'}]]
-            send_message(chat_id, response_text, buttons)
+            send_message(sender_id, response_text, buttons)
 
 
 def save_diagnostic(session: dict) -> int:
@@ -258,14 +255,14 @@ def save_diagnostic(session: dict) -> int:
         return None
 
 
-def send_message(chat_id: str, text: str, buttons: list = None):
+def send_message(user_id: int, text: str, buttons: list = None):
     '''Отправка сообщения через MAX API'''
     
     token = os.environ.get('MAX_BOT_TOKEN')
     url = 'https://platform-api.max.ru/messages'
     
     payload = {
-        'chat_id': chat_id,
+        'user_id': user_id,
         'text': text
     }
     
@@ -280,7 +277,7 @@ def send_message(chat_id: str, text: str, buttons: list = None):
         'Content-Type': 'application/json'
     }
     
-    print(f"[DEBUG] Sending message to chat_id: {chat_id}")
+    print(f"[DEBUG] Sending message to user_id: {user_id}")
     print(f"[DEBUG] Payload: {json.dumps(payload, ensure_ascii=False)}")
     
     response = requests.post(url, json=payload, headers=headers)
