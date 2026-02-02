@@ -259,10 +259,9 @@ def send_message(user_id: int, text: str, buttons: list = None):
     '''Отправка сообщения через MAX API'''
     
     token = os.environ.get('MAX_BOT_TOKEN')
-    url = 'https://platform-api.max.ru/messages'
+    url = f'https://platform-api.max.ru/messages?user_id={user_id}'
     
     payload = {
-        'user_id': user_id,
         'text': text
     }
     
@@ -278,6 +277,7 @@ def send_message(user_id: int, text: str, buttons: list = None):
     }
     
     print(f"[DEBUG] Sending message to user_id: {user_id}")
+    print(f"[DEBUG] URL: {url}")
     print(f"[DEBUG] Payload: {json.dumps(payload, ensure_ascii=False)}")
     
     response = requests.post(url, json=payload, headers=headers)
