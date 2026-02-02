@@ -69,11 +69,14 @@ def handler(event: dict, context) -> dict:
 def handle_message(update: dict):
     '''Обработка текстовых сообщений'''
     message = update.get('message', {})
-    chat_id = message.get('chat_id')
+    chat_id = message.get('recipient', {}).get('chat_id')
     sender_id = message.get('sender', {}).get('user_id', chat_id)
     user_text = message.get('body', {}).get('text', '').strip()
     
+    print(f"[DEBUG] Extracted chat_id: {chat_id}, sender_id: {sender_id}, text: {user_text}")
+    
     if not chat_id:
+        print("[WARNING] No chat_id found, skipping message")
         return
     
     session = user_sessions.get(sender_id, {'step': 0})
@@ -157,11 +160,15 @@ def handle_message(update: dict):
 def handle_callback(update: dict):
     '''Обработка нажатий на кнопки'''
     callback = update.get('callback', {})
-    chat_id = callback.get('message', {}).get('chat_id')
+    message = callback.get('message', {})
+    chat_id = message.get('recipient', {}).get('chat_id')
     sender_id = callback.get('user', {}).get('user_id', chat_id)
     payload = callback.get('payload', '')
     
+    print(f"[DEBUG] Callback - chat_id: {chat_id}, sender_id: {sender_id}, payload: {payload}")
+    
     if not chat_id:
+        print("[WARNING] No chat_id found in callback, skipping")
         return
     
     session = user_sessions.get(sender_id, {'step': 0})
