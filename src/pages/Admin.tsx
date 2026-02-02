@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -6,9 +7,23 @@ import Icon from '@/components/ui/icon';
 import { Badge } from '@/components/ui/badge';
 
 const Admin = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('admin_token');
+    if (!token) {
+      navigate('/login');
+    }
+  }, [navigate]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('admin_token');
+    toast({ title: 'Выход выполнен' });
+    navigate('/login');
+  };
 
   const webhookUrl = 'https://functions.poehali.dev/f48b0eea-37b1-4cf5-a470-aa20ae0fd775';
   const setupUrl = 'https://functions.poehali.dev/8e7d060d-23fb-4628-88e9-e251279d6a28';
@@ -92,14 +107,24 @@ const Admin = () => {
       <div className="max-w-4xl mx-auto space-y-6">
         <Card className="bg-slate-950/90 border-primary/20">
           <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
-                <Icon name="Settings" size={24} className="text-white" />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
+                  <Icon name="Settings" size={24} className="text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-white">Админ-панель</CardTitle>
+                  <CardDescription>Управление интеграцией с MAX ботом</CardDescription>
+                </div>
               </div>
-              <div>
-                <CardTitle className="text-white">Админ-панель</CardTitle>
-                <CardDescription>Управление интеграцией с MAX ботом</CardDescription>
-              </div>
+              <Button
+                variant="outline"
+                onClick={handleLogout}
+                className="flex items-center gap-2"
+              >
+                <Icon name="LogOut" size={16} />
+                Выйти
+              </Button>
             </div>
           </CardHeader>
         </Card>
