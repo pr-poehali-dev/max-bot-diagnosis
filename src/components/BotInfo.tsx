@@ -17,11 +17,20 @@ const BotInfo = () => {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="text-center">
+          <div className="text-center space-y-4">
             <p className="text-slate-300 leading-relaxed">
               Умный помощник для проведения диагностики автомобилей в автосервисе.
               Автоматизирует процесс осмотра, сохраняет данные и генерирует отчёты.
             </p>
+            <a 
+              href="https://max.ru/id245900919213_bot" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg font-semibold transition-all shadow-lg hover:shadow-xl"
+            >
+              <Icon name="MessageSquare" size={20} />
+              Открыть в MAX мессенджере
+            </a>
           </div>
 
           <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
@@ -48,7 +57,11 @@ const BotInfo = () => {
               </li>
               <li className="flex items-start gap-2">
                 <Icon name="CheckCircle2" size={16} className="text-green-400 mt-0.5 flex-shrink-0" />
-                <span>Удобный интерфейс как в популярных мессенджерах</span>
+                <span>Работает в MAX мессенджере и веб-версии</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <Icon name="CheckCircle2" size={16} className="text-green-400 mt-0.5 flex-shrink-0" />
+                <span>Синхронизация данных между всеми устройствами</span>
               </li>
             </ul>
           </div>
@@ -67,21 +80,15 @@ const BotInfo = () => {
               </div>
               <div className="flex items-center gap-3">
                 <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 font-mono">
-                  /help
-                </Badge>
-                <span className="text-slate-300 text-sm">Показать список команд</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 font-mono">
-                  /history
-                </Badge>
-                <span className="text-slate-300 text-sm">Открыть историю диагностик</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 font-mono">
                   /cancel
                 </Badge>
                 <span className="text-slate-300 text-sm">Отменить текущую операцию</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 font-mono">
+                  /help
+                </Badge>
+                <span className="text-slate-300 text-sm">Показать список команд</span>
               </div>
             </div>
           </div>
