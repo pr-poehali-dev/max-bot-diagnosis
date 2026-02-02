@@ -35,10 +35,17 @@ def handler(event: dict, context) -> dict:
         update = json.loads(event.get('body', '{}'))
         update_type = update.get('update_type')
         
+        print(f"[DEBUG] Received update_type: {update_type}")
+        print(f"[DEBUG] Full update: {json.dumps(update, ensure_ascii=False)}")
+        
         if update_type == 'message_created':
+            print("[DEBUG] Handling message_created")
             handle_message(update)
         elif update_type == 'message_callback':
+            print("[DEBUG] Handling message_callback")
             handle_callback(update)
+        else:
+            print(f"[WARNING] Unknown update_type: {update_type}")
         
         return {
             'statusCode': 200,
@@ -48,6 +55,9 @@ def handler(event: dict, context) -> dict:
         }
     
     except Exception as e:
+        print(f"[ERROR] Exception in handler: {str(e)}")
+        import traceback
+        print(f"[ERROR] Traceback: {traceback.format_exc()}")
         return {
             'statusCode': 500,
             'headers': {'Content-Type': 'application/json'},
@@ -263,5 +273,12 @@ def send_message(chat_id: str, text: str, buttons: list = None):
         'Content-Type': 'application/json'
     }
     
+    print(f"[DEBUG] Sending message to chat_id: {chat_id}")
+    print(f"[DEBUG] Payload: {json.dumps(payload, ensure_ascii=False)}")
+    
     response = requests.post(url, json=payload, headers=headers)
+    
+    print(f"[DEBUG] Response status: {response.status_code}")
+    print(f"[DEBUG] Response body: {response.text}")
+    
     return response.json()
