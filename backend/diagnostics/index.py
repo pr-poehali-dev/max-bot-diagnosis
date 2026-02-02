@@ -13,7 +13,7 @@ def handler(event: dict, context) -> dict:
             'statusCode': 200,
             'headers': {
                 'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+                'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
                 'Access-Control-Allow-Headers': 'Content-Type'
             },
             'body': '',
@@ -63,6 +63,34 @@ def handler(event: dict, context) -> dict:
                     'createdAt': result[1].isoformat(),
                     'message': 'Диагностика успешно сохранена'
                 }),
+                'isBase64Encoded': False
+            }
+        
+        elif method == 'DELETE':
+            query_params = event.get('queryStringParameters', {}) or {}
+            diagnostic_id = query_params.get('id')
+            
+            if not diagnostic_id:
+                return {
+                    'statusCode': 400,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    'body': json.dumps({'error': 'ID диагностики обязателен'}),
+                    'isBase64Encoded': False
+                }
+            
+            cur.execute(f"DELETE FROM {schema}.diagnostics WHERE id = {diagnostic_id}")
+            conn.commit()
+            
+            return {
+                'statusCode': 200,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({'message': 'Диагностика удалена'}),
                 'isBase64Encoded': False
             }
         

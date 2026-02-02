@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import Icon from '@/components/ui/icon';
@@ -11,6 +12,9 @@ const Admin = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [subscriptions, setSubscriptions] = useState<any[]>([]);
+  const [mechanics, setMechanics] = useState<any[]>([]);
+  const [diagnostics, setDiagnostics] = useState<any[]>([]);
+  const [newMechanicName, setNewMechanicName] = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem('admin_token');
@@ -101,6 +105,86 @@ const Admin = () => {
       setLoading(false);
     }
   };
+
+  const loadMechanics = async () => {
+    try {
+      const response = await fetch('https://functions.poehali.dev/47f92079-1392-4766-911a-8aa94a4d8db9');
+      if (!response.ok) throw new Error('Ошибка загрузки');
+      const data = await response.json();
+      setMechanics(data);
+    } catch (error) {
+      toast({ title: 'Ошибка', description: 'Не удалось загрузить механиков', variant: 'destructive' });
+    }
+  };
+
+  const loadDiagnostics = async () => {
+    try {
+      const response = await fetch('https://functions.poehali.dev/e76024e1-4735-4e57-bf5f-060276b574c8');
+      if (!response.ok) throw new Error('Ошибка загрузки');
+      const data = await response.json();
+      setDiagnostics(data);
+    } catch (error) {
+      toast({ title: 'Ошибка', description: 'Не удалось загрузить диагностики', variant: 'destructive' });
+    }
+  };
+
+  const addMechanic = async () => {
+    if (!newMechanicName.trim()) {
+      toast({ title: 'Ошибка', description: 'Введите имя механика', variant: 'destructive' });
+      return;
+    }
+    
+    try {
+      const response = await fetch('https://functions.poehali.dev/47f92079-1392-4766-911a-8aa94a4d8db9', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newMechanicName })
+      });
+      
+      if (!response.ok) throw new Error('Ошибка добавления');
+      
+      toast({ title: 'Готово', description: 'Механик добавлен' });
+      setNewMechanicName('');
+      await loadMechanics();
+    } catch (error) {
+      toast({ title: 'Ошибка', description: 'Не удалось добавить механика', variant: 'destructive' });
+    }
+  };
+
+  const deleteMechanic = async (id: number) => {
+    try {
+      const response = await fetch(`https://functions.poehali.dev/47f92079-1392-4766-911a-8aa94a4d8db9?id=${id}`, {
+        method: 'DELETE'
+      });
+      
+      if (!response.ok) throw new Error('Ошибка удаления');
+      
+      toast({ title: 'Готово', description: 'Механик удалён' });
+      await loadMechanics();
+    } catch (error) {
+      toast({ title: 'Ошибка', description: 'Не удалось удалить механика', variant: 'destructive' });
+    }
+  };
+
+  const deleteDiagnostic = async (id: number) => {
+    try {
+      const response = await fetch(`https://functions.poehali.dev/e76024e1-4735-4e57-bf5f-060276b574c8?id=${id}`, {
+        method: 'DELETE'
+      });
+      
+      if (!response.ok) throw new Error('Ошибка удаления');
+      
+      toast({ title: 'Готово', description: 'Диагностика удалена' });
+      await loadDiagnostics();
+    } catch (error) {
+      toast({ title: 'Ошибка', description: 'Не удалось удалить диагностику', variant: 'destructive' });
+    }
+  };
+
+  useEffect(() => {
+    loadMechanics();
+    loadDiagnostics();
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-4">
@@ -238,6 +322,95 @@ const Admin = () => {
                 ))}
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        <Card className="bg-slate-950/90 border-slate-700">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <Icon name="Users" size={20} className="text-primary" />
+              Механики
+            </CardTitle>
+            <CardDescription>Управление списком механиков</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-2">
+              <Input
+                placeholder="Имя механика"
+                value={newMechanicName}
+                onChange={(e) => setNewMechanicName(e.target.value)}
+                className="bg-slate-900/50 border-slate-700 text-white"
+                onKeyDown={(e) => e.key === 'Enter' && addMechanic()}
+              />
+              <Button onClick={addMechanic} className="flex items-center gap-2">
+                <Icon name="Plus" size={16} />
+                Добавить
+              </Button>
+            </div>
+
+            <div className="space-y-2">
+              {mechanics.map((mechanic) => (
+                <div key={mechanic.id} className="flex items-center justify-between bg-slate-900/50 rounded-lg p-3 border border-slate-700">
+                  <span className="text-white">{mechanic.name}</span>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => deleteMechanic(mechanic.id)}
+                  >
+                    <Icon name="Trash2" size={16} />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-slate-950/90 border-slate-700">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <Icon name="ClipboardList" size={20} className="text-primary" />
+              Диагностики
+            </CardTitle>
+            <CardDescription>История сохранённых диагностик</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {diagnostics.length === 0 ? (
+                <div className="text-center py-8 text-slate-400">
+                  <Icon name="InboxIcon" size={48} className="mx-auto mb-3 opacity-50" />
+                  <p>Нет сохранённых диагностик</p>
+                </div>
+              ) : (
+                diagnostics.map((diagnostic) => (
+                  <div key={diagnostic.id} className="bg-slate-900/50 rounded-lg p-4 border border-slate-700">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30">
+                            {diagnostic.diagnosticType}
+                          </Badge>
+                          <span className="text-xs text-slate-500">
+                            {new Date(diagnostic.createdAt).toLocaleString('ru-RU')}
+                          </span>
+                        </div>
+                        <div className="text-sm text-slate-300">
+                          <div>Механик: <span className="text-white font-medium">{diagnostic.mechanic}</span></div>
+                          <div>Автомобиль: <span className="text-white font-medium">{diagnostic.carNumber}</span></div>
+                          <div>Пробег: <span className="text-white font-medium">{diagnostic.mileage.toLocaleString()} км</span></div>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => deleteDiagnostic(diagnostic.id)}
+                      >
+                        <Icon name="Trash2" size={16} />
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </CardContent>
         </Card>
 
